@@ -1,0 +1,32 @@
+---
+- name: Install OpenVpn
+  block:
+    - name: Clone OpenVpn
+      ansible.builtin.git:
+        repo: https://github.com/ilflask/dockvpn.git
+        dest: /open_vpn
+    - name: Running a container
+      docker_container:
+        name: open_vpn
+        image: umputun/dockvpn
+        privileged: true
+        volumes:
+          - /open_vpn/container:/etc/openvpn
+        ports:
+          - "443:443/tcp"
+          - "1194:1194/udp"
+      register: container
+    - name: Running a container 2
+      docker_container:
+        name: open_vpn2
+        image: umputun/dockvpn
+        volumes_from: "{{ container.container.Id }}"
+        command: serveconfig
+        ports:
+          - "8080:8080"
+    - name: Copying the config to the local machine
+      fetch:
+        src: /open_vpn/container/client.ovpn
+        dest: ./config
+        flat: false
+  become: false
