@@ -1,0 +1,8 @@
+- name: Install logrotate
+  block:
+    - name: Install logrotate
+      apt:
+        name: logrotate
+        state: latest
+        update_cache: yes
+        install_recommends: no

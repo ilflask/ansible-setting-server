@@ -1,3 +1,5 @@
 ### Ansible template
 *.retry
 .vscode
+/.vscode/
+.idea

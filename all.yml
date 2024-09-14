@@ -1,5 +1,0 @@
----
-- name: Start
-  hosts: cluster
-  roles:
-    - docker

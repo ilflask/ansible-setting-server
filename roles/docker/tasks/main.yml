@@ -4,42 +4,64 @@
     - name: Installing additional packages
       apt:
         name:
-          - ca-certificates 
-          - curl gnupg
+          - ca-certificates
+          - curl
+          - gnupg
         update-cache: yes
         update_cache_retries: 86400
 
     - name: Adding a Docker Key
       apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
+        url: https://download.docker.com/linux/{{ os_id }}/gpg
         state: present
-        keyring: /usr/share/keyrings/docker.gpg
-    - name: Install universe
-      when: ansible_distribution == 'Ubuntu'
+
+    - name: Add docker repository
       apt_repository:
-        repo: >
-          deb [arch=amd64  signed-by=/usr/share/keyrings/docker.gpg]
-          https://download.docker.com/linux/{{ ansible_distribution }}
-          {{ ansible_distribution_release }} stable
-        state: present
-        update-cache: yes
+        repo: deb https://download.docker.com/linux/{{ os_id }} {{ os_codename }} stable
         filename: docker
+        state: present
 
-    - name: Docker installation
+    - name: Install docker
       apt:
-        name: 
-          - docker-ce 
-          - docker-ce-cli 
-          - containerd.io 
-          - docker-buildx-plugin 
-          - docker-compose-plugin
-        update-cache: yes
+        name:
+          - docker-ce={{ docker_version }}
+          - docker-ce-cli={{ docker_version }}
+          - containerd.io=1.*
+        install_recommends: no
+        force: yes
 
-    - name: Checking Docker is Installed and Reloaded
-      service:
+    - name: Install docker compose plugin
+      apt:
+        name:
+          - docker-compose-plugin=2.29.* # В v2.14 ломали healthcheck:test через наследование. При обновлении версии нужно проверять наследование.
+        install_recommends: no
+        force: yes
+      when:
+        (os_id == 'ubuntu' and ansible_facts['distribution_version'] is version('18.04', '>=')) or
+        (os_id == 'debian' and ansible_facts['distribution_version'] is version('10', '>='))
+
+    - name: Start docker
+      systemd:
         name: docker
-        state: restarted
+        state: started
         enabled: yes
+        daemon_reload: yes
+
+  #    - name: Docker installation
+  #      apt:
+  #        name:
+  #          - docker-ce
+  #          - docker-ce-cli
+  #          - containerd.io
+  #          - docker-buildx-plugin
+  #          - docker-compose-plugin
+  #        update-cache: yes
+  #
+  #    - name: Checking Docker is Installed and Reloaded
+  #      service:
+  #        name: docker
+  #        state: restarted
+  #        enabled: yes
   become: true
 - name: Completing the installation
   block:

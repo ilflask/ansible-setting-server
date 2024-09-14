@@ -1,0 +1,9 @@
+---
+- name: Install common packages
+  hosts: cluster
+  roles:
+    - docker
+    - fail2ban
+    - timezone
+    - logrotate
+

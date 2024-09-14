@@ -1,0 +1,5 @@
+- name: set timezone to Asia/Yekaterinburg
+  timezone:
+    name: Asia/Yekaterinburg
+  become: yes
+  become_method: sudo
